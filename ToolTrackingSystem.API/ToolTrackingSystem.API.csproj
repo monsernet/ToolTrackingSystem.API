@@ -28,7 +28,6 @@
     <Folder Include="Middleware\" />
     <Folder Include="Helpers\" />
     <Folder Include="Configuration\" />
-    <Folder Include="Data\" />
     <Folder Include="Repositories\" />
     <Folder Include="Services\" />
   </ItemGroup>

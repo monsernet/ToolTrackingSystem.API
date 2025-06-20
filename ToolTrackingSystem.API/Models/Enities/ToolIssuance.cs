@@ -29,8 +29,17 @@ namespace ToolTrackingSystem.API.Models.Entities
         [MaxLength(500)]
         public string? Purpose { get; set; }
 
+        // Changed to store as int but work with enum in code
         [Required]
-        public IssuanceStatus Status { get; set; } = IssuanceStatus.Issued;
+        [Column("Status", TypeName = "int")]
+        public int StatusValue { get; set; } = (int)IssuanceStatus.Issued;
+
+        [NotMapped]
+        public IssuanceStatus Status
+        {
+            get => (IssuanceStatus)StatusValue;
+            set => StatusValue = (int)value;
+        }
 
         [MaxLength(1000)]
         public string? Notes { get; set; }
