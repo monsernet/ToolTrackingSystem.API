@@ -2,7 +2,7 @@
 
 [![.NET](https://img.shields.io/badge/.NET-8.0-blue)](https://dotnet.microsoft.com/)
 [![Angular](https://img.shields.io/badge/Angular-19-red)](https://angular.io/)
-[![SQL Server](https://img.shields.io/badge/SQL%20Server-2022-cc2927)](https://www.microsoft.com/sql-server)
+[![SQL Server](https://img.shields.io/badge/SQL%20Server-2019-cc2927)](https://www.microsoft.com/sql-server)
 
 A comprehensive web application for tracking tool issuance, returns, and maintenance in vehicle service departments.
 
