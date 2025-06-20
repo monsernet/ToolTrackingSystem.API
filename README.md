@@ -41,7 +41,7 @@ A comprehensive web application for tracking tool issuance, returns, and mainten
 ### Backend
 - ASP.NET Core 8 Web API
 - Entity Framework Core (Code-First)
-- SQL Server 2022
+- SQL Server 2019
 - SignalR for real-time updates
 
 ### DevOps
