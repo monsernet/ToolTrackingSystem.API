@@ -60,5 +60,5 @@ A comprehensive web application for tracking tool issuance, returns, and mainten
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-organization/tool-tracking-system.git
+   git clone https://github.com/monsernet/tool-tracking-system.git
    cd tool-tracking-system
