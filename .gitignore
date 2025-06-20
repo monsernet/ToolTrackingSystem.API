@@ -361,3 +361,29 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# ASP.NET Core environment-specific settings
+appsettings.json
+appsettings.Development.json
+appsettings.Production.json
+appsettings.*.local.json
+.env
+secrets.json
+
+# ASP.NET Core secrets storage
+secrets.json
+.env
+
+# SSL/TLS certificates
+*.pfx
+*.cer
+*.key
+*.crt
+
+# Entity Framework Migrations temporary files
+**/Migrations/obj/
+
+# Custom logs
+/logs/
+*.log
+
