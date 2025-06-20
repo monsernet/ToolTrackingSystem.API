@@ -54,7 +54,7 @@ A comprehensive web application for tracking tool issuance, returns, and mainten
 ### Prerequisites
 - [.NET 8 SDK](https://dotnet.microsoft.com/download)
 - [Node.js v18+](https://nodejs.org/)
-- [SQL Server 2022](https://www.microsoft.com/sql-server)
+- [SQL Server 2019](https://www.microsoft.com/sql-server)
 
 ### Setup Instructions
 
