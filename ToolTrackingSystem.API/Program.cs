@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using ToolTrackingSystem.API.Data;
 using ToolTrackingSystem.API.Models.Entities;
+using ToolTrackingSystem.API.Repositories;
 
 namespace ToolTrackingSystem.API
 {
@@ -22,6 +23,10 @@ namespace ToolTrackingSystem.API
             builder.Services.AddIdentity<IdentityUser, IdentityRole>()
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
+
+            // register repositories in DI
+            builder.Services.AddScoped<IToolRepository, ToolRepository>();
+
 
             //Configure JWT
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -73,7 +78,7 @@ namespace ToolTrackingSystem.API
             ConfigureMiddleware(app, builder.Environment);
 
             // Initialize database and seed data
-            //await InitializeDatabaseAsync(app);
+            await InitializeDatabaseAsync(app);
             // (temporary - remove after testing)
             using (var scope = app.Services.CreateScope())
             {
@@ -99,7 +104,7 @@ namespace ToolTrackingSystem.API
             services.AddControllers()
                 .AddJsonOptions(options =>
                 {
-                    options.JsonSerializerOptions.PropertyNamingPolicy = null; // Preserve PascalCase
+                    options.JsonSerializerOptions.PropertyNamingPolicy = null; 
                 });
 
             // Add Swagger/OpenAPI
