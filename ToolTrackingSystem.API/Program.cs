@@ -1,4 +1,9 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
 using ToolTrackingSystem.API.Data;
 using ToolTrackingSystem.API.Models.Entities;
 
@@ -13,13 +18,73 @@ namespace ToolTrackingSystem.API
             // Add services to the container
             ConfigureServices(builder.Services, builder.Configuration);
 
+            //Configure Identity
+            builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddDefaultTokenProviders();
+
+            //Configure JWT
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options => {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+                    )
+                };
+            });
+
+            builder.Services.AddAuthorization();
+
+            // Enable JWT in Swagger
+            builder.Services.AddSwaggerGen(c => {
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header ",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer"
+                });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+        {
+            new OpenApiSecurityScheme {
+                Reference = new OpenApiReference {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+            });
+
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline
             ConfigureMiddleware(app, builder.Environment);
 
             // Initialize database and seed data
-            await InitializeDatabaseAsync(app);
+            //await InitializeDatabaseAsync(app);
+            // (temporary - remove after testing)
+            using (var scope = app.Services.CreateScope())
+            {
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+                var testUser = new IdentityUser
+                {
+                    UserName = "test@example.com",
+                    Email = "test@example.com"
+                };
+                await userManager.CreateAsync(testUser, "TestPassword123!");
+            }
 
             app.Run();
         }

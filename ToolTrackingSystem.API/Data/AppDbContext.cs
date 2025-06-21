@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using ToolTrackingSystem.API.Models.Entities;
 
 namespace ToolTrackingSystem.API.Data
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<IdentityUser>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
@@ -25,9 +27,12 @@ namespace ToolTrackingSystem.API.Data
                 entity.HasIndex(t => t.Code).IsUnique();
                 entity.Property(t => t.Status).HasDefaultValue(ToolStatus.Active);
 
-                entity.HasCheckConstraint(
-                    "CK_Tools_CalibrationDates",
-                    "NOT (CalibrationRequired = 1 AND (LastCalibrationDate IS NULL OR NextCalibrationDate IS NULL))");
+                entity.ToTable(tableBuilder =>
+                {
+                    tableBuilder.HasCheckConstraint(
+                        "CK_Tools_CalibrationDates",
+                        "NOT (CalibrationRequired = 1 AND (LastCalibrationDate IS NULL OR NextCalibrationDate IS NULL))");
+                });
             });
 
             // Configure Employee entity
@@ -92,9 +97,12 @@ namespace ToolTrackingSystem.API.Data
             // Configure ToolCalibration entity
             modelBuilder.Entity<ToolCalibration>(entity =>
             {
-                entity.HasCheckConstraint(
-                    "CK_ToolCalibration_Dates",
-                    "NextCalibrationDate > CalibrationDate");
+                entity.ToTable(tableBuilder =>
+                {
+                    tableBuilder.HasCheckConstraint(
+                        "CK_ToolCalibration_Dates",
+                        "NextCalibrationDate > CalibrationDate");
+                });
 
                 entity.HasOne(c => c.Tool)
                     .WithMany(t => t.Calibrations)

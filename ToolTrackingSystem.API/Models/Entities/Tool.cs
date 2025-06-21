@@ -49,11 +49,9 @@ namespace ToolTrackingSystem.API.Models.Entities
         public ToolStatus Status { get; set; } = ToolStatus.Active;
 
         [Required]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [Required]
-        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
