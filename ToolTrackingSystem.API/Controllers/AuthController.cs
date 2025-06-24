@@ -5,6 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using ToolTrackingSystem.API.Models.DTOs;
+using ToolTrackingSystem.API.Models.Entities;
 
 namespace ToolTrackingSystem.API.Controllers
 {
@@ -13,9 +14,9 @@ namespace ToolTrackingSystem.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IConfiguration _config;
-        private readonly UserManager<IdentityUser> _userManager; 
+        private readonly UserManager<ApplicationUser> _userManager; 
 
-        public AuthController(IConfiguration config, UserManager<IdentityUser> userManager)
+        public AuthController(IConfiguration config, UserManager<ApplicationUser> userManager)
         {
             _config = config;
             _userManager = userManager;

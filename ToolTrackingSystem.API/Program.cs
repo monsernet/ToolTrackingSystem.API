@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using ToolTrackingSystem.API.Core.Constants;
 using ToolTrackingSystem.API.Data;
 using ToolTrackingSystem.API.Models.Entities;
 using ToolTrackingSystem.API.Repositories;
@@ -20,12 +21,14 @@ namespace ToolTrackingSystem.API
             ConfigureServices(builder.Services, builder.Configuration);
 
             //Configure Identity
-            builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
 
             // register repositories in DI
+            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddScoped<IToolRepository, ToolRepository>();
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 
             //Configure JWT
@@ -79,16 +82,19 @@ namespace ToolTrackingSystem.API
 
             // Initialize database and seed data
             await InitializeDatabaseAsync(app);
-            // (temporary - remove after testing)
+
+            //seed Roles
             using (var scope = app.Services.CreateScope())
             {
-                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
-                var testUser = new IdentityUser
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+                foreach (var roleName in RoleHelper.GetAllRoles())
                 {
-                    UserName = "test@example.com",
-                    Email = "test@example.com"
-                };
-                await userManager.CreateAsync(testUser, "TestPassword123!");
+                    if (!await roleManager.RoleExistsAsync(roleName))
+                    {
+                        await roleManager.CreateAsync(new IdentityRole(roleName));
+                    }
+                }
             }
 
             app.Run();
