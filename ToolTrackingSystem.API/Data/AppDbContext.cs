@@ -11,11 +11,12 @@ namespace ToolTrackingSystem.API.Data
         {
         }
         public DbSet<Tool> Tools { get; set; }
-        public DbSet<Employee> Employees { get; set; }
+        public DbSet<Technician> Technicians { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<ToolIssuance> ToolIssuances { get; set; }
         public DbSet<ToolReturn> ToolReturns { get; set; }
         public DbSet<ToolCalibration> ToolCalibrations { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -36,9 +37,10 @@ namespace ToolTrackingSystem.API.Data
             });
 
             // Configure Employee entity
-            modelBuilder.Entity<Employee>(entity =>
+            modelBuilder.Entity<Technician>(entity =>
             {
-                entity.HasIndex(e => e.EmployeeId).IsUnique();
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+                entity.HasIndex(e => e.TechnicianId).IsUnique();
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
             });
 
@@ -49,7 +51,7 @@ namespace ToolTrackingSystem.API.Data
                 entity.HasIndex(u => u.Email).IsUnique();
                 entity.Property(u => u.IsActive).HasDefaultValue(true);
 
-                entity.HasOne(u => u.Employee)
+                entity.HasOne(u => u.Technician)
                     .WithOne(e => e.User)
                     .HasForeignKey<User>(u => u.EmployeeId)
                     .OnDelete(DeleteBehavior.Restrict);
@@ -109,10 +111,14 @@ namespace ToolTrackingSystem.API.Data
                     .HasForeignKey(c => c.ToolId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne(c => c.PerformedBy)
-                    .WithMany()
-                    .HasForeignKey(c => c.PerformedById)
-                    .OnDelete(DeleteBehavior.Restrict);
+                
+            });
+
+            // Configure Notification Entity
+            modelBuilder.Entity<Notification>(entity =>
+            {
+                entity.Property(n => n.Message).IsRequired().HasMaxLength(500);
+                entity.Property(n => n.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             });
         }
     }

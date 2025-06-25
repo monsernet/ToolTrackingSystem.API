@@ -4,25 +4,30 @@ using ToolTrackingSystem.API.Models.Entities;
 using ToolTrackingSystem.API.Repositories;
 using ToolTrackingSystem.API.Models.DTOs.Users;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace ToolTrackingSystem.API.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class UsersController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ILogger<UsersController> _logger;
 
         public UsersController(
             IUserRepository userRepository,
             UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole> roleManager,
             ILogger<UsersController> logger)
         {
             _userRepository = userRepository;
             _userManager = userManager;
+            _roleManager = roleManager;
             _logger = logger;
         }
 
@@ -32,15 +37,24 @@ namespace ToolTrackingSystem.API.Controllers
         {
             try
             {
+                _logger.LogInformation("Fetching all users with roles");
                 var users = await _userRepository.GetAllAsync();
-                var userDtos = users.Select(u => new UserDto
+                var userDtos = new List<UserDto>();
+
+                foreach (var user in users)
                 {
-                    Id = u.Id.ToString(),
-                    Email = u.Email,
-                    FirstName = u.FirstName,
-                    LastName = u.LastName,
-                    UserName = u.UserName
-                });
+                    var roles = await _userManager.GetRolesAsync(user);
+                    _logger.LogInformation($"User {user.Id} has roles: {string.Join(", ", roles)}");
+                    userDtos.Add(new UserDto
+                    {
+                        Id = user.Id.ToString(),
+                        Email = user.Email,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        UserName = user.UserName,
+                        Roles = roles.ToList() 
+                    });
+                }
 
                 return Ok(userDtos);
             }
@@ -93,7 +107,46 @@ namespace ToolTrackingSystem.API.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(ModelState);
+                    return BadRequest(new
+                    {
+                        Message = "Validation failed",
+                        Errors = ModelState.ToDictionary(
+                            k => k.Key,
+                            v => v.Value.Errors.Select(e => e.ErrorMessage).ToArray())
+                    });
+                }
+
+                // Check if email exists first
+                var emailUser = await _userManager.FindByEmailAsync(createUserDto.Email);
+                if (emailUser != null)
+                {
+                    return Conflict(new
+                    {
+                        Message = "Email already exists",
+                        Field = "email"
+                    });
+                }
+
+                // Validate roles before creating user
+                if (createUserDto.Roles != null && createUserDto.Roles.Any())
+                {
+                    var invalidRoles = new List<string>();
+                    foreach (var role in createUserDto.Roles)
+                    {
+                        if (!await _roleManager.RoleExistsAsync(role))
+                        {
+                            invalidRoles.Add(role);
+                        }
+                    }
+
+                    if (invalidRoles.Any())
+                    {
+                        return BadRequest(new
+                        {
+                            Message = "Invalid roles specified",
+                            InvalidRoles = invalidRoles
+                        });
+                    }
                 }
 
                 var user = new ApplicationUser
@@ -101,38 +154,36 @@ namespace ToolTrackingSystem.API.Controllers
                     UserName = createUserDto.Email,
                     Email = createUserDto.Email,
                     FirstName = createUserDto.FirstName,
-                    LastName = createUserDto.LastName
+                    LastName = createUserDto.LastName,
+                    PhoneNumber = createUserDto.PhoneNumber
                 };
 
                 var result = await _userManager.CreateAsync(user, createUserDto.Password);
 
                 if (!result.Succeeded)
                 {
-                    foreach (var error in result.Errors)
+                    var errorDetails = result.Errors.ToDictionary(
+                        e => e.Code,
+                        e => e.Description
+                    );
+
+                    return BadRequest(new
                     {
-                        ModelState.AddModelError(error.Code, error.Description);
-                    }
-                    return BadRequest(ModelState);
+                        Message = "User creation failed",
+                        Errors = errorDetails
+                    });
                 }
 
-                // Add user to roles if specified
+                // Add user to validated roles
                 if (createUserDto.Roles != null && createUserDto.Roles.Any())
                 {
-                    foreach (var role in createUserDto.Roles)
-                    {
-                        if (!await _userRepository.RoleExistsAsync(role))
-                        {
-                            return BadRequest($"Role '{role}' does not exist");
-                        }
-                    }
-
                     var roleResult = await _userManager.AddToRolesAsync(user, createUserDto.Roles);
                     if (!roleResult.Succeeded)
                     {
-                        _logger.LogWarning($"Failed to add user {user.Id} to roles");
+                        _logger.LogWarning("Failed to add roles to user {UserId}. Errors: {Errors}",
+                            user.Id, string.Join(", ", roleResult.Errors.Select(e => e.Description)));
                     }
                 }
-
 
                 var userDto = new UserDto
                 {
@@ -140,14 +191,34 @@ namespace ToolTrackingSystem.API.Controllers
                     Email = user.Email,
                     FirstName = user.FirstName,
                     LastName = user.LastName,
-                    UserName = user.UserName
+                    UserName = user.UserName,
+                    Roles = createUserDto.Roles ?? new List<string>()
                 };
 
                 return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, userDto);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating user");
+                _logger.LogError(ex, "Error creating user for email {Email}", createUserDto.Email);
+                return StatusCode(500, new
+                {
+                    Message = "An unexpected error occurred while creating user",
+                    Details = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("check-email")]
+        public async Task<ActionResult<bool>> CheckEmailExists([FromBody] string email)
+        {
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(email);
+                return Ok(user != null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking email existence");
                 return StatusCode(500, "Internal server error");
             }
         }
@@ -241,5 +312,83 @@ namespace ToolTrackingSystem.API.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
+
+        [HttpGet("roles")]
+        public async Task<ActionResult<IEnumerable<string>>> GetAvailableRoles()
+        {
+            try
+            {
+                var roles = await _roleManager.Roles
+                    .Select(r => r.Name)
+                    .ToListAsync();
+
+                return Ok(roles);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching available roles");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+
+        
+        [HttpPut("{id}/change-password")]
+        public async Task<IActionResult> ChangePassword(string id, [FromBody] ChangePasswordDto changePasswordDto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var user = await _userManager.FindByIdAsync(id);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                // Remove the user's current password
+                var removePasswordResult = await _userManager.RemovePasswordAsync(user);
+                if (!removePasswordResult.Succeeded)
+                {
+                    foreach (var error in removePasswordResult.Errors)
+                    {
+                        ModelState.AddModelError(error.Code, error.Description);
+                    }
+                    return BadRequest(ModelState);
+                }
+
+                // Add the new password
+                var addPasswordResult = await _userManager.AddPasswordAsync(user, changePasswordDto.NewPassword);
+                if (!addPasswordResult.Succeeded)
+                {
+                    foreach (var error in addPasswordResult.Errors)
+                    {
+                        ModelState.AddModelError(error.Code, error.Description);
+                    }
+                    return BadRequest(ModelState);
+                }
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error changing password for user with ID {id}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+
+        [HttpGet("user-roles")]
+        public async Task<ActionResult<List<string>>> GetUserRoles()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roles = await _userManager.GetRolesAsync(await _userManager.FindByIdAsync(userId));
+            return Ok(roles);
+        }
+
     }
 }

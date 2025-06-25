@@ -46,7 +46,7 @@ namespace ToolTrackingSystem.API.Models.Entities
         public DateTime? NextCalibrationDate { get; set; }
 
         [Required]
-        public ToolStatus Status { get; set; } = ToolStatus.Active;
+        public ToolStatus? Status { get; set; } = ToolStatus.Active;
 
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

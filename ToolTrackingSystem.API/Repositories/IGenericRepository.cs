@@ -8,5 +8,6 @@
         Task UpdateAsync(T entity);
         Task DeleteAsync(T entity);
         Task<bool> ExistsAsync(int id);
+        Task AddRangeAsync(IEnumerable<T> entities);
     }
 }

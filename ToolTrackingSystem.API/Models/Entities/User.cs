@@ -45,7 +45,7 @@ namespace ToolTrackingSystem.API.Models.Entities
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
-        public virtual Employee? Employee { get; set; }
+        public virtual Technician? Technician { get; set; }
         public virtual ICollection<ToolIssuance> IssuedTools { get; set; } = new List<ToolIssuance>();
         public virtual ICollection<ToolReturn> ReturnedTools { get; set; } = new List<ToolReturn>();
         public virtual ICollection<ToolCalibration> PerformedCalibrations { get; set; } = new List<ToolCalibration>();

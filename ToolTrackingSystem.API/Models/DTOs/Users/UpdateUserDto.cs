@@ -4,10 +4,10 @@ namespace ToolTrackingSystem.API.Models.DTOs.Users
 {
     public class UpdateUserDto
     {
+        [Required]
         public string Id { get; set; }
 
-        [Required]
-        [EmailAddress]
+        [Required, EmailAddress]
         public string Email { get; set; }
 
         [Required]
@@ -17,6 +17,8 @@ namespace ToolTrackingSystem.API.Models.DTOs.Users
         public string LastName { get; set; }
 
         public string PhoneNumber { get; set; }
-        public List<string> Roles { get; set; } = new List<string>();
+
+        [Required]
+        public List<string> Roles { get; set; }
     }
 }

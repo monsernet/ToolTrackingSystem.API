@@ -9,26 +9,26 @@ namespace ToolTrackingSystem.API.Data
         {
             context.Database.EnsureCreated();
 
-            if (context.Employees.Any())
+            if (context.Technicians.Any())
             {
                 return; // DB has been seeded
             }
 
-            var employees = new Employee[]
+            var technicians = new Technician[]
             {
-                new Employee { EmployeeId = "EMP001", FirstName = "John", LastName = "Doe", Email = "john.doe@company.com", Department = "Maintenance", Position = "Senior Technician" },
-                new Employee { EmployeeId = "EMP002", FirstName = "Jane", LastName = "Smith", Email = "jane.smith@company.com", Department = "Service", Position = "Technician" },
-                new Employee { EmployeeId = "EMP003", FirstName = "Robert", LastName = "Johnson", Email = "robert.johnson@company.com", Department = "Maintenance", Position = "Manager" }
+                new Technician { TechnicianId = "EMP001", FirstName = "John", LastName = "Doe", Email = "john.doe@company.com", Department = "Maintenance", Position = "Senior Technician" },
+                new Technician { TechnicianId = "EMP002", FirstName = "Jane", LastName = "Smith", Email = "jane.smith@company.com", Department = "Service", Position = "Technician" },
+                new Technician { TechnicianId = "EMP003", FirstName = "Robert", LastName = "Johnson", Email = "robert.johnson@company.com", Department = "Maintenance", Position = "Manager" }
             };
 
-            context.Employees.AddRange(employees);
+            context.Technicians.AddRange(technicians);
             context.SaveChanges();
 
             var users = new User[]
             {
-                new User { Username = "admin", PasswordHash = "AEF024A5B5B3A6B3E6C9B8A5D3F2E5D1C8B3A6B3E6C9B8A5D3F2E5D1C8B3A6B3", Salt = "SALT123", Email = "admin@tooltracking.com", Role = UserRole.Admin, EmployeeId = employees[2].Id },
-                new User { Username = "supervisor", PasswordHash = "BEF124B5B3A6B3E6C9B8A5D3F2E5D1C8B3A6B3E6C9B8A5D3F2E5D1C8B3A6B4", Salt = "SALT456", Email = "supervisor@tooltracking.com", Role = UserRole.Supervisor, EmployeeId = employees[0].Id },
-                new User { Username = "staff", PasswordHash = "CEF224C5B3A6B3E6C9B8A5D3F2E5D1C8B3A6B3E6C9B8A5D3F2E5D1C8B3A6B5", Salt = "SALT789", Email = "staff@tooltracking.com", Role = UserRole.Staff, EmployeeId = employees[1].Id }
+                new User { Username = "admin", PasswordHash = "AEF024A5B5B3A6B3E6C9B8A5D3F2E5D1C8B3A6B3E6C9B8A5D3F2E5D1C8B3A6B3", Salt = "SALT123", Email = "admin@tooltracking.com", Role = UserRole.Admin, EmployeeId = technicians[2].Id },
+                new User { Username = "supervisor", PasswordHash = "BEF124B5B3A6B3E6C9B8A5D3F2E5D1C8B3A6B3E6C9B8A5D3F2E5D1C8B3A6B4", Salt = "SALT456", Email = "supervisor@tooltracking.com", Role = UserRole.Supervisor, EmployeeId = technicians[0].Id },
+                new User { Username = "staff", PasswordHash = "CEF224C5B3A6B3E6C9B8A5D3F2E5D1C8B3A6B3E6C9B8A5D3F2E5D1C8B3A6B5", Salt = "SALT789", Email = "staff@tooltracking.com", Role = UserRole.Staff, EmployeeId = technicians[1].Id }
             };
 
             context.Users.AddRange(users);

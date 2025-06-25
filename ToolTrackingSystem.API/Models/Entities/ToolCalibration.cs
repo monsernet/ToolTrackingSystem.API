@@ -19,8 +19,8 @@ namespace ToolTrackingSystem.API.Models.Entities
         public DateTime NextCalibrationDate { get; set; }
 
         [Required]
-        [ForeignKey("PerformedBy")]
-        public int PerformedById { get; set; }
+        [MaxLength(100)]
+        public string PerformedBy { get; set; }
 
         [MaxLength(100)]
         public string? CertificateNumber { get; set; }
@@ -28,12 +28,17 @@ namespace ToolTrackingSystem.API.Models.Entities
         [MaxLength(1000)]
         public string? Notes { get; set; }
 
+        [MaxLength(50)]
+        public string? CalibrationMethod { get; set; } // "Laser Alignment", "Pressure Test"
+
+        [MaxLength(100)]
+        public string? StandardUsed { get; set; } // "ISO 6789", "Manufacturer Spec"
+
         [Required]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
         public virtual Tool Tool { get; set; } = null!;
-        public virtual User PerformedBy { get; set; } = null!;
     }
 }

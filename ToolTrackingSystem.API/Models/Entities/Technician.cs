@@ -3,14 +3,15 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ToolTrackingSystem.API.Models.Entities
 {
-    public class Employee
+    public class Technician
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
         [Required]
         [MaxLength(50)]
-        public string EmployeeId { get; set; } = string.Empty;
+        public string TechnicianId { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(100)]
@@ -25,7 +26,7 @@ namespace ToolTrackingSystem.API.Models.Entities
         public string? Email { get; set; }
 
         [MaxLength(100)]
-        public string? Department { get; set; }
+        public string? Department { get; set; } = null;
 
         [MaxLength(100)]
         public string? Position { get; set; }

@@ -230,7 +230,36 @@ namespace ToolTrackingSystem.API.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("ToolTrackingSystem.API.Models.Entities.Employee", b =>
+            modelBuilder.Entity("ToolTrackingSystem.API.Models.Entities.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("RecipientUserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("ToolTrackingSystem.API.Models.Entities.Technician", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -248,11 +277,6 @@ namespace ToolTrackingSystem.API.Migrations
                     b.Property<string>("Email")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("EmployeeId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -273,15 +297,20 @@ namespace ToolTrackingSystem.API.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("TechnicianId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EmployeeId")
+                    b.HasIndex("TechnicianId")
                         .IsUnique();
 
-                    b.ToTable("Employees");
+                    b.ToTable("Technicians");
                 });
 
             modelBuilder.Entity("ToolTrackingSystem.API.Models.Entities.Tool", b =>
@@ -368,6 +397,10 @@ namespace ToolTrackingSystem.API.Migrations
                     b.Property<DateTime>("CalibrationDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("CalibrationMethod")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<string>("CertificateNumber")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -383,8 +416,14 @@ namespace ToolTrackingSystem.API.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<int>("PerformedById")
-                        .HasColumnType("int");
+                    b.Property<string>("PerformedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("StandardUsed")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("ToolId")
                         .HasColumnType("int");
@@ -393,8 +432,6 @@ namespace ToolTrackingSystem.API.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("PerformedById");
 
                     b.HasIndex("ToolId");
 
@@ -414,6 +451,10 @@ namespace ToolTrackingSystem.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime?>("ActualReturnDate")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)");
+
                     b.Property<string>("ApplicationUserId")
                         .HasColumnType("nvarchar(450)");
 
@@ -421,11 +462,24 @@ namespace ToolTrackingSystem.API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("ExpectedReturnDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("IssuedById")
+                    b.Property<int?>("ExpectedDurationDays")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("ExpectedReturnDate")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<bool>("IsOverdue")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("IssuanceNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("IssuedById")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("IssuedDate")
                         .ValueGeneratedOnAdd()
@@ -435,11 +489,19 @@ namespace ToolTrackingSystem.API.Migrations
                     b.Property<int>("IssuedToId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("LastOverdueNotificationDate")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)");
+
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<int>("OverdueNotificationCount")
+                        .HasColumnType("int");
+
                     b.Property<string>("Purpose")
+                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -458,13 +520,25 @@ namespace ToolTrackingSystem.API.Migrations
                     b.Property<int?>("UserId")
                         .HasColumnType("int");
 
+                    b.Property<string>("WorkOrderNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ApplicationUserId");
 
+                    b.HasIndex("IsOverdue");
+
                     b.HasIndex("IssuedById");
 
+                    b.HasIndex("IssuedDate");
+
                     b.HasIndex("IssuedToId");
+
+                    b.HasIndex("LastOverdueNotificationDate");
+
+                    b.HasIndex("StatusValue");
 
                     b.HasIndex("ToolId");
 
@@ -635,12 +709,6 @@ namespace ToolTrackingSystem.API.Migrations
 
             modelBuilder.Entity("ToolTrackingSystem.API.Models.Entities.ToolCalibration", b =>
                 {
-                    b.HasOne("ToolTrackingSystem.API.Models.Entities.User", "PerformedBy")
-                        .WithMany()
-                        .HasForeignKey("PerformedById")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("ToolTrackingSystem.API.Models.Entities.Tool", "Tool")
                         .WithMany("Calibrations")
                         .HasForeignKey("ToolId")
@@ -651,8 +719,6 @@ namespace ToolTrackingSystem.API.Migrations
                         .WithMany("PerformedCalibrations")
                         .HasForeignKey("UserId");
 
-                    b.Navigation("PerformedBy");
-
                     b.Navigation("Tool");
                 });
 
@@ -662,13 +728,13 @@ namespace ToolTrackingSystem.API.Migrations
                         .WithMany("ToolIssuances")
                         .HasForeignKey("ApplicationUserId");
 
-                    b.HasOne("ToolTrackingSystem.API.Models.Entities.User", "IssuedBy")
+                    b.HasOne("ToolTrackingSystem.API.Models.Entities.ApplicationUser", "IssuedBy")
                         .WithMany()
                         .HasForeignKey("IssuedById")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ToolTrackingSystem.API.Models.Entities.Employee", "IssuedTo")
+                    b.HasOne("ToolTrackingSystem.API.Models.Entities.Technician", "IssuedTo")
                         .WithMany("ToolIssuances")
                         .HasForeignKey("IssuedToId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -705,7 +771,7 @@ namespace ToolTrackingSystem.API.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ToolTrackingSystem.API.Models.Entities.User", "ReturnedBy")
+                    b.HasOne("ToolTrackingSystem.API.Models.Entities.Technician", "ReturnedBy")
                         .WithMany()
                         .HasForeignKey("ReturnedById")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -722,12 +788,12 @@ namespace ToolTrackingSystem.API.Migrations
 
             modelBuilder.Entity("ToolTrackingSystem.API.Models.Entities.User", b =>
                 {
-                    b.HasOne("ToolTrackingSystem.API.Models.Entities.Employee", "Employee")
+                    b.HasOne("ToolTrackingSystem.API.Models.Entities.Technician", "Technician")
                         .WithOne("User")
                         .HasForeignKey("ToolTrackingSystem.API.Models.Entities.User", "EmployeeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("Employee");
+                    b.Navigation("Technician");
                 });
 
             modelBuilder.Entity("ToolTrackingSystem.API.Models.Entities.ApplicationUser", b =>
@@ -735,7 +801,7 @@ namespace ToolTrackingSystem.API.Migrations
                     b.Navigation("ToolIssuances");
                 });
 
-            modelBuilder.Entity("ToolTrackingSystem.API.Models.Entities.Employee", b =>
+            modelBuilder.Entity("ToolTrackingSystem.API.Models.Entities.Technician", b =>
                 {
                     b.Navigation("ToolIssuances");
 

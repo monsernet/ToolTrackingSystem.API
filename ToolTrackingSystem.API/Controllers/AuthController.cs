@@ -25,29 +25,47 @@ namespace ToolTrackingSystem.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto request)
         {
-            // Validate user 
-            var user = await _userManager.FindByEmailAsync(request.Email);
-            if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
+            Console.WriteLine($"Login attempt for: {request.Email}");
+            try
             {
-                return Unauthorized("Invalid credentials");
-            }
+                var user = await _userManager.FindByEmailAsync(request.Email);
+                if (user == null)
+                {
+                    Console.WriteLine("User not found");
+                    return Unauthorized("Invalid credentials");
+                }
+                // Validate user 
+                //var user = await _userManager.FindByEmailAsync(request.Email);
+                if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
+                {
+                    return Unauthorized("Invalid credentials");
+                }
 
-            // Generate token
-            var token = GenerateJwtToken(user);
-            return Ok(new { token });
+                // Generate token
+                var token = GenerateJwtToken(user);
+                return Ok(new { token });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"EXCEPTION: {ex}");
+                return StatusCode(500, "Internal server error");
+            }
         }
 
-        private string GenerateJwtToken(IdentityUser user)
+        private string GenerateJwtToken(ApplicationUser user)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new[] {
-            new Claim(JwtRegisteredClaimNames.Sub, user.UserName!),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email!),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            // Add roles if needed (e.g., "Admin", "User")
-        };
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id), // Use user.Id instead of UserName
+                new Claim(ClaimTypes.NameIdentifier, user.Id), // ASP.NET Core's standard claim
+                new Claim(JwtRegisteredClaimNames.Email, user.Email!),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim("FirstName", user.FirstName),
+                new Claim("LastName", user.LastName),
+                // Add roles if needed
+            };
 
             var token = new JwtSecurityToken(
                 issuer: _config["Jwt:Issuer"],
@@ -59,5 +77,9 @@ namespace ToolTrackingSystem.API.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        
+
+
     }
 }

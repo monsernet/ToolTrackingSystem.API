@@ -32,7 +32,7 @@ namespace ToolTrackingSystem.API.Models.Entities
 
         // Navigation properties
         public virtual ToolIssuance Issuance { get; set; } = null!;
-        public virtual User ReturnedBy { get; set; } = null!;
+        public virtual Technician ReturnedBy { get; set; } = null!;
     }
 
     public enum ToolCondition
